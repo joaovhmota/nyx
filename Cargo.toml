@@ -1,0 +1,11 @@
+[package]
+name = "nyx"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+dotenv = "0.15.0"
+logfy = { git = "https://github.com/joaovhmota/logfy.git", branch = "main", version = "0.1.0" }
+poise = "0.6.1"
+serenity = { version = "0.12.5", features = ["full"] }
+tokio = { version = "1.50.0", features = ["macros", "rt-multi-thread"] }
