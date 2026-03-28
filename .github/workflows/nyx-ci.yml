@@ -1,0 +1,66 @@
+name: nyx-ci
+run-name: "🛠️ Run №${{ github.run_number }}, ${{ github.event_name }} by ${{ github.actor }} (Attempt №${{ github.run_attempt }})"
+
+on:
+  push:
+    paths:
+      - 'src/**'
+      - '.github/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+  pull_request:
+    paths:
+      - 'src/**'
+      - '.github/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+
+jobs:
+  build:
+    name: 🛠️ Toolchain Version — ${{ matrix.toolchain }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - stable
+          - beta
+          - nightly
+
+    continue-on-error: ${{ matrix.toolchain == 'nightly' }}
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🦀 Setup
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+          components: rustfmt, clippy
+
+      - name: ⚡ Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/${{ matrix.toolchain }}
+          key: ${{ runner.os }}-cargo-${{ matrix.toolchain }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: 🎨 Formatting
+        run: cargo fmt -- --check
+
+      - name: 📋 Check
+        if: matrix.toolchain != 'stable'
+        run: cargo check --verbose
+
+      - name: 🏗️ Build
+        if: matrix.toolchain == 'stable'
+        run: cargo build --verbose
+
+      - name: 🔍 Clippy
+        if: matrix.toolchain == 'stable'
+        run: cargo clippy -- -D warnings
