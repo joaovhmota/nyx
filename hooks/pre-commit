@@ -7,7 +7,7 @@ echo "🎨 Formatting code…"
 cargo fmt
 
 echo "📦 Checking Build…"
-cargo check
+cargo fmt -- --check
 
 echo "📎 Running clippy…"
 cargo clippy -- -D warnings

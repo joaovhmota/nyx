@@ -5,9 +5,11 @@ use serenity::all::{Http, UserId};
 use std::{collections::HashSet, env, process::exit, vec};
 
 use crate::{
-    commands::{die::die, ping::ping},
+    commands::{
+        about_user::about_user, ping::ping, profile_picture::profile_picture, shutdown::shutdown,
+    },
     types::{Context, Error},
-    utils::user::get_user_name,
+    utils::user_utils::get_user_name,
 };
 
 pub fn get_token() -> String {
@@ -36,7 +38,7 @@ pub fn get_token() -> String {
 }
 
 pub fn get_commands() -> Vec<Command<(), Error>> {
-    vec![ping(), die()]
+    vec![ping(), shutdown(), profile_picture(), about_user()]
 }
 
 pub async fn get_owner(token: &str) -> HashSet<UserId> {
