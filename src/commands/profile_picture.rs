@@ -6,7 +6,11 @@ use poise::CreateReply;
 use serenity::all::{Color, CreateActionRow, CreateButton, CreateEmbed, Timestamp, User};
 
 #[poise::command(slash_command)]
-pub async fn profile_picture(ctx: Context<'_>, user: Option<User>) -> Result<(), Error> {
+pub async fn profile_picture(
+    ctx: Context<'_>,
+    #[description = "User to get profile picture. If not provided, show info about the author."]
+    user: Option<User>,
+) -> Result<(), Error> {
     let target_user = get_target_user(&ctx, &user, true).await?;
     let avatar = target_user
         .avatar_url()

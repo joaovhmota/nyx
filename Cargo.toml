@@ -4,8 +4,33 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+bson = "3.1.0"
 dotenv = "0.15.0"
 logfy = { git = "https://github.com/joaovhmota/logfy.git", branch = "main", version = "0.1.0" }
+mongodb = "3.6.0"
 poise = "0.6.1"
+rand = "0.10.1"
+redis = { version = "1.2.1", features = ["tokio-comp"] }
 serenity = { version = "0.12.5", features = ["full"] }
 tokio = { version = "1.50.0", features = ["macros", "rt-multi-thread"] }
+
+[profile.release]
+opt-level = 3          # Nível máximo de otimização do LLVM
+debug = false          # Sem símbolos de debug (binário menor)
+debug-assertions = false # Desativa assertions de debug
+overflow-checks = false  # Remove verificações de overflow (mais rápido)
+lto = "fat"            # Link-Time Optimization completo entre todos os crates
+codegen-units = 1      # Um único codegen unit = melhor otimização global
+incremental = false    # Sem compilação incremental (garante otimização máxima)
+panic = "abort"        # Aborta imediatamente ao invés de fazer unwind (binário menor)
+strip = "symbols"      # Remove símbolos do binário final (reduz tamanho)
+
+[profile.dev]
+opt-level = 0          # Sem otimizações — compilação rápida
+debug = true           # Símbolos de debug completos
+debug-assertions = true # Ativa assert_eq!, assert!, etc.
+overflow-checks = true  # Detecta overflow de inteiros em runtime
+lto = false            # Sem Link-Time Optimization
+codegen-units = 256    # Máximo paralelismo na compilação (mais rápido)
+incremental = true     # Recompila apenas o que mudou
+panic = "unwind"       # Permite capturar panics com catch_unwind

@@ -4,5 +4,4 @@
 .env
 
 # Docker
-dockerfile
 *compose.yml

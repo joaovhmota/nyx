@@ -5,8 +5,12 @@ use crate::{
 use poise::{CreateReply, command};
 use serenity::all::{Color, CreateActionRow, CreateButton, CreateEmbed, Timestamp, User};
 
-#[command(category = "admin", slash_command, rename = "about_user")]
-pub async fn about_user(ctx: Context<'_>, user: Option<User>) -> Result<(), Error> {
+#[command(slash_command)]
+pub async fn about_user(
+    ctx: Context<'_>,
+    #[description = "Who you want to know more about. If not provided, show info about the author."]
+    user: Option<User>,
+) -> Result<(), Error> {
     let target_user = get_target_user(&ctx, &user, true).await?;
     let avatar = target_user
         .avatar_url()

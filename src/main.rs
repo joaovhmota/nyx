@@ -1,9 +1,13 @@
 pub mod commands;
+pub mod db;
 pub mod setup;
 pub mod types;
 pub mod utils;
 
-use crate::setup::{get_framework_options, get_token};
+use crate::{
+    db::{mongodb::NyxMongo, redis::NyxRedis},
+    setup::{get_framework_options, get_token},
+};
 use logfy::{critical, debug, information, success};
 use poise::{Framework, samples::register_globally};
 use serenity::all::{ActivityData, ClientBuilder, GatewayIntents};
@@ -16,21 +20,49 @@ async fn main() {
     let token = get_token();
     let intents: GatewayIntents = GatewayIntents::GUILD_MESSAGES | GatewayIntents::GUILDS;
 
+    debug!("Testing connections…");
+    information!("Connecting to MongoDB…");
+    let mongo_client = NyxMongo::get_client().await;
+
+    match mongo_client {
+        Ok(_) => {
+            success!("Successfully connected to MongoDB");
+        }
+        Err(err) => {
+            critical!("Could not connect to MongoDB. Reason: {}", err);
+            exit(1);
+        }
+    }
+
+    information!("Connecting to Redis…");
+    let redis_client = NyxRedis::get_client().await;
+
+    match redis_client {
+        Ok(_) => {
+            success!("Successfully connected to Redis");
+        }
+        Err(err) => {
+            critical!("Could not connect to Redis. Reason: {}", err);
+            exit(1);
+        }
+    }
+
     let framework = Framework::builder()
         .options(get_framework_options(&token).await)
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
                 information!("Running setup…");
 
-                let amount_of_commands = &framework.options().commands.len();
-
-                debug!("Registering {amount_of_commands} commands…");
+                debug!(
+                    "Registering {} commands…",
+                    &framework.options().commands.len()
+                );
                 register_globally(ctx, &framework.options().commands).await?;
                 debug!("Comands registered!");
 
                 debug!("Settings presence…");
                 ctx.set_presence(
-                    Some(ActivityData::custom("Made in 🦀 Rust".to_string())),
+                    Some(ActivityData::custom("Made in Rust 🦀".to_string())),
                     serenity::all::OnlineStatus::DoNotDisturb,
                 );
                 debug!("Presence setted!");

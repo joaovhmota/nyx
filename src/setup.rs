@@ -1,13 +1,13 @@
 use dotenv::dotenv;
-use logfy::{critical, debug, error, information};
+use logfy::{critical, error, information, warning};
+use poise::CreateReply;
+use poise::serenity_prelude::{Color, CreateEmbed, Timestamp};
 use poise::{Command, FrameworkError, FrameworkOptions};
 use serenity::all::{Http, UserId};
 use std::{collections::HashSet, env, process::exit, vec};
 
 use crate::{
-    commands::{
-        about_user::about_user, ping::ping, profile_picture::profile_picture, shutdown::shutdown,
-    },
+    commands::{about_user::about_user, profile_picture::profile_picture, roll_dice::roll_dice},
     types::{Context, Error},
     utils::user_utils::get_user_name,
 };
@@ -38,7 +38,7 @@ pub fn get_token() -> String {
 }
 
 pub fn get_commands() -> Vec<Command<(), Error>> {
-    vec![ping(), shutdown(), profile_picture(), about_user()]
+    vec![profile_picture(), about_user(), roll_dice()]
 }
 
 pub async fn get_owner(token: &str) -> HashSet<UserId> {
@@ -68,25 +68,37 @@ pub async fn on_pre_command(ctx: &Context<'_>) {
 }
 
 pub async fn on_error(error: FrameworkError<'_, (), Error>) {
-    match error {
-        FrameworkError::Command {
-            error: err, ctx, ..
-        } => {
-            error!("Command '{}' failed: {:?}", ctx.command().name, err);
-
-            let _ = ctx.defer_ephemeral().await;
-            let _ = ctx.reply("❌ Algo deu errado.").await;
-        }
+    let (embed, ctx) = match error {
         FrameworkError::NotAnOwner { ctx, .. } => {
-            debug!("Unauthorized access attempt by {}", ctx.author().id);
+            warning!("Unauthorized access attempt by {}", ctx.author().id);
 
-            let _ = ctx.defer_ephemeral().await;
-            let _ = ctx.reply("🚫 Você não tem acesso a esse comando.").await;
+            let embed = CreateReply::default().embed(
+                CreateEmbed::default()
+                    .title("🚫 Unauthorized")
+                    .description("You're not allowed to use this command.")
+                    .color(Color::ORANGE)
+                    .timestamp(Timestamp::now()),
+            );
+
+            (embed, ctx)
         }
-        other => {
-            error!("Unhandled error: {:?}", other);
+        FrameworkError::Command { error, ctx, .. } => {
+            error!("Command failed: {:?}", error);
+
+            let embed = CreateReply::default().embed(
+                CreateEmbed::default()
+                    .title("❌ Command failed")
+                    .description(format!("{error}"))
+                    .color(Color::RED)
+                    .timestamp(Timestamp::now()),
+            );
+
+            (embed, ctx)
         }
-    }
+        _ => todo!("Error"),
+    };
+
+    let _ = ctx.send(embed.ephemeral(true)).await;
 }
 
 pub async fn get_framework_options(token: &str) -> FrameworkOptions<(), Error> {
