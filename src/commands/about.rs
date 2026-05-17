@@ -6,7 +6,7 @@ use poise::{CreateReply, command};
 use serenity::all::{Color, CreateActionRow, CreateButton, CreateEmbed, Timestamp, User};
 
 #[command(slash_command)]
-pub async fn about_user(
+pub async fn about(
     ctx: Context<'_>,
     #[description = "Who you want to know more about. If not provided, show info about the author."]
     user: Option<User>,
@@ -21,14 +21,14 @@ pub async fn about_user(
     let is_bot = target_user.bot;
 
     let embed = CreateEmbed::new()
-        .title(format!("・About {}", target_user.name))
+        .title(format!("🪪 About {}", target_user.name))
         .thumbnail(&avatar)
         .color(Color::DARK_PURPLE)
-        .field("👤 Name", get_user_name(&target_user), true)
-        .field("🪪 ID", user_id.to_string(), true)
-        .field("⚙️ Is APP?", if is_bot { "✅" } else { "❌" }, true)
+        .field("Name", get_user_name(&target_user), true)
+        .field("ID", user_id.to_string(), true)
+        .field("Type", if is_bot { "Bot" } else { "User" }, true)
         .field(
-            "🗓️ Account Creation Date",
+            "Created at",
             format!("<t:{}:F>", created_at.unix_timestamp()),
             false,
         )

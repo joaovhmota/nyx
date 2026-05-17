@@ -1,3 +1,8 @@
+use crate::{
+    commands::{about::about, profile_picture::profile_picture, roll_dice::roll_dice},
+    types::{Context, Error},
+    utils::user_utils::get_user_name,
+};
 use dotenv::dotenv;
 use logfy::{critical, error, information, warning};
 use poise::CreateReply;
@@ -5,12 +10,6 @@ use poise::serenity_prelude::{Color, CreateEmbed, Timestamp};
 use poise::{Command, FrameworkError, FrameworkOptions};
 use serenity::all::{Http, UserId};
 use std::{collections::HashSet, env, process::exit, vec};
-
-use crate::{
-    commands::{about_user::about_user, profile_picture::profile_picture, roll_dice::roll_dice},
-    types::{Context, Error},
-    utils::user_utils::get_user_name,
-};
 
 pub fn get_token() -> String {
     if cfg!(debug_assertions) {
@@ -38,7 +37,7 @@ pub fn get_token() -> String {
 }
 
 pub fn get_commands() -> Vec<Command<(), Error>> {
-    vec![profile_picture(), about_user(), roll_dice()]
+    vec![profile_picture(), about(), roll_dice()]
 }
 
 pub async fn get_owner(token: &str) -> HashSet<UserId> {
