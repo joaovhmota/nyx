@@ -1,10 +1,15 @@
 use crate::{
-    commands::{about::about, profile_picture::profile_picture, roll_dice::roll_dice},
+    commands::{
+        about::about, profile_picture::profile_picture, roll_dice::roll_dice, usage::usage,
+    },
+    db::mongodb::NyxMongo,
     types::{Context, Error},
     utils::user_utils::get_user_name,
 };
+use bson::Document;
 use dotenv::dotenv;
 use logfy::{critical, error, information, warning};
+use mongodb::bson::doc;
 use poise::CreateReply;
 use poise::serenity_prelude::{Color, CreateEmbed, Timestamp};
 use poise::{Command, FrameworkError, FrameworkOptions};
@@ -37,7 +42,7 @@ pub fn get_token() -> String {
 }
 
 pub fn get_commands() -> Vec<Command<(), Error>> {
-    vec![profile_picture(), about(), roll_dice()]
+    vec![profile_picture(), about(), roll_dice(), usage()]
 }
 
 pub async fn get_owner(token: &str) -> HashSet<UserId> {
@@ -64,6 +69,33 @@ pub async fn on_pre_command(ctx: &Context<'_>) {
         user.id,
         command.name
     );
+
+    match NyxMongo::get_client().await {
+        Ok(client) => {
+            let db = client.database("nyx");
+            let collection = db.collection::<Document>("users");
+
+            let filter = doc! { "_id": user.id.to_string() };
+            let update = doc! { "$inc": { "commands_executed": 1 } };
+            let options = mongodb::options::UpdateOptions::builder()
+                .upsert(true)
+                .build();
+
+            if let Err(err) = collection
+                .update_one(filter, update)
+                .with_options(options)
+                .await
+            {
+                error!(
+                    "Failed to update command execution count in MongoDB: {}",
+                    err
+                );
+            }
+        }
+        Err(err) => {
+            critical!("Failed to connect to MongoDB: {}", err);
+        }
+    }
 }
 
 pub async fn on_error(error: FrameworkError<'_, (), Error>) {
@@ -97,6 +129,7 @@ pub async fn on_error(error: FrameworkError<'_, (), Error>) {
         _ => todo!("Error"),
     };
 
+    let _ = ctx.defer_ephemeral().await;
     let _ = ctx.send(embed.ephemeral(true)).await;
 }
 

@@ -3,7 +3,7 @@ use poise::{CreateReply, command};
 use rand::RngExt;
 use serenity::{
     all::{Color, CreateEmbed, Timestamp},
-    builder::CreateEmbedFooter,
+    builder::{CreateEmbedAuthor, CreateEmbedFooter},
 };
 
 #[command(slash_command)]
@@ -40,6 +40,10 @@ pub async fn roll_dice(
     let total = sum + modifier_value;
 
     let mut embed = CreateEmbed::new()
+        .author(
+            CreateEmbedAuthor::new(ctx.author().display_name().to_string())
+                .icon_url(ctx.author().avatar_url().unwrap()),
+        )
         .title("🎲 Roll Results")
         .color(Color::DARK_PURPLE)
         .field("Sides", sides.to_string(), true)

@@ -3,7 +3,10 @@ use crate::{
     utils::user_utils::{get_target_user, get_user_name},
 };
 use poise::{CreateReply, command};
-use serenity::all::{Color, CreateActionRow, CreateButton, CreateEmbed, Timestamp, User};
+use serenity::{
+    all::{Color, CreateActionRow, CreateButton, CreateEmbed, Timestamp, User},
+    builder::CreateEmbedAuthor,
+};
 
 #[command(slash_command)]
 pub async fn about(
@@ -21,11 +24,15 @@ pub async fn about(
     let is_bot = target_user.bot;
 
     let embed = CreateEmbed::new()
+        .author(
+            CreateEmbedAuthor::new(ctx.author().display_name().to_string())
+                .icon_url(ctx.author().avatar_url().unwrap_or_default()),
+        )
         .title(format!("🪪 About {}", target_user.name))
         .thumbnail(&avatar)
         .color(Color::DARK_PURPLE)
-        .field("Name", get_user_name(&target_user), true)
         .field("ID", user_id.to_string(), true)
+        .field("Name", get_user_name(&target_user), true)
         .field("Type", if is_bot { "Bot" } else { "User" }, true)
         .field(
             "Created at",

@@ -3,7 +3,10 @@ use crate::{
     utils::user_utils::{get_possession_suffix, get_target_user, get_user_name},
 };
 use poise::CreateReply;
-use serenity::all::{Color, CreateActionRow, CreateButton, CreateEmbed, Timestamp, User};
+use serenity::{
+    all::{Color, CreateActionRow, CreateButton, CreateEmbed, Timestamp, User},
+    builder::CreateEmbedAuthor,
+};
 
 #[poise::command(slash_command)]
 pub async fn profile_picture(
@@ -18,6 +21,10 @@ pub async fn profile_picture(
         .replace("?size=1024", "?size=4096");
     let suffix = get_possession_suffix(&target_user);
     let embed = CreateEmbed::new()
+        .author(
+            CreateEmbedAuthor::new(ctx.author().display_name().to_string())
+                .icon_url(ctx.author().avatar_url().unwrap_or_default()),
+        )
         .title(format!(
             "🖼️ {}{} Avatar",
             get_user_name(&target_user),
