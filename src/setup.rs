@@ -70,9 +70,8 @@ pub async fn on_pre_command(ctx: &Context<'_>) {
         command.name
     );
 
-    match NyxMongo::get_client().await {
-        Ok(client) => {
-            let db = client.database("nyx");
+    match NyxMongo::get_db().await {
+        Ok(db) => {
             let collection = db.collection::<Document>("users");
 
             let filter = doc! { "_id": user.id.to_string() };
