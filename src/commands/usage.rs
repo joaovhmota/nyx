@@ -10,24 +10,12 @@ use serenity::builder::CreateEmbedAuthor;
 
 #[command(slash_command)]
 pub async fn usage(ctx: Context<'_>) -> Result<(), Error> {
-    let client = match NyxMongo::get_client().await {
-        Ok(c) => c,
-        Err(err) => {
-            return Err(err);
-        }
-    };
+    let client = NyxMongo::get_client().await?;
 
     let db = client.database("nyx");
     let collection = db.collection::<Document>("users");
 
-    let mut cursor = match collection.find(doc! {}).await {
-        Ok(c) => c,
-        Err(_) => {
-            ctx.defer_ephemeral().await?;
-            ctx.say("Could not connect to the database.").await?;
-            return Ok(());
-        }
-    };
+    let mut cursor = collection.find(doc! {}).await?;
 
     let mut users_data = Vec::new();
     let mut total_commands: f64 = 0.0;
