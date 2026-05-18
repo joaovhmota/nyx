@@ -48,7 +48,12 @@ pub async fn usage(ctx: Context<'_>) -> Result<(), Error> {
     if users_data.is_empty() {
         embed = embed.description("Nothing to see here.");
     } else {
-        embed = embed.description(format!("Amount of commands executed: `{total_commands}`"));
+        embed = embed.description("Summary containing all command requests/executions and the top 25 users with the most requests/executions.");
+        embed = embed.field(
+            "Amount of commands requested/executed",
+            format!("{total_commands}"),
+            false,
+        );
 
         users_data.truncate(25);
 
@@ -59,10 +64,10 @@ pub async fn usage(ctx: Context<'_>) -> Result<(), Error> {
                 0.0
             };
 
-            embed = embed.field("User", format!("<@{id}>"), true);
-            embed = embed.field("# of commands", format!("**{executed}**"), true);
-            embed = embed.field("% of executions", format!("**{percentage:.2}%**"), true);
-            embed = embed.field("", "", false);
+            embed = embed.field("User", format!("<@{id}>"), false);
+            embed = embed.field("# of commands", format!("{executed}\n"), false);
+            embed = embed.field("% of executions", format!("{percentage:.2}%\n"), false);
+            embed = embed.field(String::default(), String::default(), true);
         }
     }
 
