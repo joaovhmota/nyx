@@ -29,6 +29,10 @@ pub async fn about(
                 .icon_url(ctx.author().avatar_url().unwrap_or_default()),
         )
         .title(format!("🪪 About {}", target_user.name))
+        .description(format!(
+            "Know more about {} with this summary of their profile information.",
+            get_user_name(&target_user)
+        ))
         .thumbnail(&avatar)
         .color(Color::DARK_PURPLE)
         .field("ID", user_id.to_string(), true)

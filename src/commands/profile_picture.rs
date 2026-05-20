@@ -30,6 +30,11 @@ pub async fn profile_picture(
             get_user_name(&target_user),
             suffix
         ))
+        .description(format!(
+            "Below is {}{} profile picture, use the button below to download it.",
+            get_user_name(&target_user),
+            suffix
+        ))
         .image(&avatar)
         .color(Color::DARK_PURPLE)
         .timestamp(Timestamp::now());

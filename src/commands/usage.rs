@@ -1,5 +1,3 @@
-use std::cmp::Reverse;
-
 use crate::db::mongodb::NyxMongo;
 use crate::types::{Context, Error};
 use futures::stream::StreamExt;
@@ -7,6 +5,7 @@ use mongodb::bson::{Document, doc};
 use poise::serenity_prelude::{Color, CreateEmbed, Timestamp};
 use poise::{CreateReply, command};
 use serenity::builder::CreateEmbedAuthor;
+use std::cmp::Reverse;
 
 #[command(slash_command)]
 pub async fn usage(ctx: Context<'_>) -> Result<(), Error> {
@@ -36,6 +35,8 @@ pub async fn usage(ctx: Context<'_>) -> Result<(), Error> {
 
     users_data.sort_by_key(|b| Reverse(b.1));
 
+    let context_cache = ctx.cache();
+
     let mut embed = CreateEmbed::default()
         .title("📊 Nyx's Usage")
         .color(Color::DARK_PURPLE)
@@ -44,6 +45,10 @@ pub async fn usage(ctx: Context<'_>) -> Result<(), Error> {
                 .icon_url(ctx.author().avatar_url().unwrap_or_default()),
         )
         .timestamp(Timestamp::now());
+
+    if let Some(url) = context_cache.current_user().avatar_url() {
+        embed = embed.thumbnail(url)
+    }
 
     if users_data.is_empty() {
         embed = embed.description("Nothing to see here.");
@@ -64,10 +69,10 @@ pub async fn usage(ctx: Context<'_>) -> Result<(), Error> {
                 0.0
             };
 
-            embed = embed.field("User", format!("<@{id}>"), false);
-            embed = embed.field("# of commands", format!("{executed}\n"), false);
-            embed = embed.field("% of executions", format!("{percentage:.2}%\n"), false);
-            embed = embed.field(String::default(), String::default(), true);
+            embed = embed.field("User", format!("<@{id}>"), true);
+            embed = embed.field("# of commands", format!("{executed}\n"), true);
+            embed = embed.field("% of executions", format!("{percentage:.2}%\n"), true);
+            embed = embed.field(String::default(), String::default(), false);
         }
     }
 
