@@ -7,7 +7,8 @@ use poise::{CreateReply, command};
 use serenity::builder::CreateEmbedAuthor;
 use std::cmp::Reverse;
 
-#[command(slash_command)]
+/// Shows a summary of Nyx's usage, showing the top 25 users
+#[command(slash_command, owners_only)]
 pub async fn usage(ctx: Context<'_>) -> Result<(), Error> {
     let db = NyxMongo::get_db().await?;
     let collection = db.collection::<Document>("users");

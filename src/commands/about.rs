@@ -8,6 +8,7 @@ use serenity::{
     builder::CreateEmbedAuthor,
 };
 
+/// Get's someone's (or the author's) profile information.
 #[command(slash_command)]
 pub async fn about(
     ctx: Context<'_>,

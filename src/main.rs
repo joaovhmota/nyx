@@ -20,19 +20,7 @@ async fn main() {
     let token = get_token();
     let intents: GatewayIntents = GatewayIntents::GUILD_MESSAGES | GatewayIntents::GUILDS;
 
-    debug!("Testing connections…");
-    information!("Connecting to MongoDB…");
-    let mongo_client = NyxMongo::get_client().await;
-
-    match mongo_client {
-        Ok(_) => {
-            success!("Successfully connected to MongoDB");
-        }
-        Err(err) => {
-            critical!("Could not connect to MongoDB. Reason: {}", err);
-            exit(1);
-        }
-    }
+    NyxMongo::test_connection().await;
 
     let framework = Framework::builder()
         .options(get_framework_options(&token).await)

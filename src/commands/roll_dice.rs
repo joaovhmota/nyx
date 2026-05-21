@@ -6,6 +6,7 @@ use serenity::{
     builder::{CreateEmbedAuthor, CreateEmbedFooter},
 };
 
+/// Roll's a dice, with custom sizes and amounts (optionally with a modifier).
 #[command(slash_command)]
 pub async fn roll_dice(
     ctx: Context<'_>,

@@ -1,7 +1,5 @@
 use crate::{
-    commands::{
-        about::about, profile_picture::profile_picture, roll_dice::roll_dice, usage::usage,
-    },
+    commands::avaliable_commands,
     db::mongodb::NyxMongo,
     types::{Context, Error},
     utils::user_utils::get_user_name,
@@ -12,9 +10,12 @@ use logfy::{critical, error, information, warning};
 use mongodb::bson::doc;
 use poise::CreateReply;
 use poise::serenity_prelude::{Color, CreateEmbed, Timestamp};
-use poise::{Command, FrameworkError, FrameworkOptions};
-use serenity::all::{Http, UserId};
-use std::{collections::HashSet, env, process::exit, vec};
+use poise::{FrameworkError, FrameworkOptions};
+use serenity::{
+    all::{Http, UserId},
+    builder::CreateEmbedAuthor,
+};
+use std::{collections::HashSet, env, process::exit};
 
 pub fn get_token() -> String {
     if cfg!(debug_assertions) {
@@ -39,10 +40,6 @@ pub fn get_token() -> String {
             exit(1);
         }
     }
-}
-
-pub fn get_commands() -> Vec<Command<(), Error>> {
-    vec![profile_picture(), about(), roll_dice(), usage()]
 }
 
 pub async fn get_owner(token: &str) -> HashSet<UserId> {
@@ -104,6 +101,10 @@ pub async fn on_error(error: FrameworkError<'_, (), Error>) {
 
             let embed = CreateReply::default().embed(
                 CreateEmbed::default()
+                    .author(
+                        CreateEmbedAuthor::new(ctx.author().display_name().to_string())
+                            .icon_url(ctx.author().avatar_url().unwrap_or_default()),
+                    )
                     .title("🚫 Unauthorized")
                     .description("You're not allowed to use this command.")
                     .color(Color::ORANGE)
@@ -117,6 +118,10 @@ pub async fn on_error(error: FrameworkError<'_, (), Error>) {
 
             let embed = CreateReply::default().embed(
                 CreateEmbed::default()
+                    .author(
+                        CreateEmbedAuthor::new(ctx.author().display_name().to_string())
+                            .icon_url(ctx.author().avatar_url().unwrap_or_default()),
+                    )
                     .title("❌ Command failed")
                     .description(format!("{error}"))
                     .color(Color::RED)
@@ -134,7 +139,7 @@ pub async fn on_error(error: FrameworkError<'_, (), Error>) {
 
 pub async fn get_framework_options(token: &str) -> FrameworkOptions<(), Error> {
     FrameworkOptions {
-        commands: get_commands(),
+        commands: avaliable_commands(),
         owners: get_owner(token).await,
         pre_command: |ctx| {
             Box::pin(async move {
