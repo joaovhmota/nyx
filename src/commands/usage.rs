@@ -1,10 +1,10 @@
 use crate::db::mongodb::NyxMongo;
 use crate::types::{Context, Error};
+use crate::utils::embed_builder_helper::EmbedBuilderHelper;
 use futures::stream::StreamExt;
 use mongodb::bson::{Document, doc};
-use poise::serenity_prelude::{Color, CreateEmbed, Timestamp};
-use poise::{CreateReply, command};
-use serenity::builder::CreateEmbedAuthor;
+use poise::command;
+use poise::serenity_prelude::Color;
 use std::cmp::Reverse;
 
 /// Shows a summary of Nyx's usage, showing the top 25 users
@@ -38,28 +38,24 @@ pub async fn usage(ctx: Context<'_>) -> Result<(), Error> {
 
     let context_cache = ctx.cache();
 
-    let mut embed = CreateEmbed::default()
-        .title("📊 Nyx's Usage")
-        .color(Color::DARK_PURPLE)
-        .author(
-            CreateEmbedAuthor::new(ctx.author().display_name().to_string())
-                .icon_url(ctx.author().avatar_url().unwrap_or_default()),
-        )
-        .timestamp(Timestamp::now());
+    let mut embed = EmbedBuilderHelper::new(ctx)
+        .with_title("📊 Nyx's Usage")
+        .with_color(Color::DARK_PURPLE);
 
     if let Some(url) = context_cache.current_user().avatar_url() {
-        embed = embed.thumbnail(url)
+        embed = embed.with_thumbnail(url)
     }
 
     if users_data.is_empty() {
-        embed = embed.description("Nothing to see here.");
+        embed = embed.with_description("Nothing to see here.");
     } else {
-        embed = embed.description("Summary containing all command requests/executions and the top 25 users with the most requests/executions.");
-        embed = embed.field(
-            "Amount of commands requested/executed",
-            format!("{total_commands}"),
-            false,
-        );
+        embed = embed
+            .with_description("Summary containing all command requests/executions and the top 25 users with the most requests/executions.")
+            .with_field(
+                "Amount of commands requested/executed",
+                format!("{total_commands}"),
+                false,
+            );
 
         users_data.truncate(25);
 
@@ -70,14 +66,15 @@ pub async fn usage(ctx: Context<'_>) -> Result<(), Error> {
                 0.0
             };
 
-            embed = embed.field("User", format!("<@{id}>"), true);
-            embed = embed.field("# of commands", format!("{executed}\n"), true);
-            embed = embed.field("% of executions", format!("{percentage:.2}%\n"), true);
-            embed = embed.field(String::default(), String::default(), false);
+            embed = embed
+                .with_field("User", format!("<@{id}>"), true)
+                .with_field("# of commands", format!("{executed}\n"), true)
+                .with_field("% of executions", format!("{percentage:.2}%\n"), true)
+                .with_field(String::default(), String::default(), false);
         }
     }
 
-    ctx.send(CreateReply::default().embed(embed)).await?;
+    ctx.send(embed.into()).await?;
 
     Ok(())
 }

@@ -1,12 +1,12 @@
 use crate::{
     types::{Context, Error},
-    utils::user_utils::{get_target_user, get_user_name},
+    utils::{
+        embed_builder_helper::EmbedBuilderHelper,
+        user_utils::{get_target_user, get_user_name},
+    },
 };
-use poise::{CreateReply, command};
-use serenity::{
-    all::{Color, CreateActionRow, CreateButton, CreateEmbed, Timestamp, User},
-    builder::CreateEmbedAuthor,
-};
+use poise::command;
+use serenity::all::{Color, CreateActionRow, CreateButton, User};
 
 /// Get's someone's (or the author's) profile information.
 #[command(slash_command)]
@@ -24,41 +24,29 @@ pub async fn about(
     let created_at = target_user.created_at();
     let is_bot = target_user.bot;
 
-    let embed = CreateEmbed::new()
-        .author(
-            CreateEmbedAuthor::new(ctx.author().display_name().to_string())
-                .icon_url(ctx.author().avatar_url().unwrap_or_default()),
-        )
-        .title(format!("🪪 About {}", target_user.name))
-        .description(format!(
-            "Know more about {} with this summary of their profile information.",
-            get_user_name(&target_user)
-        ))
-        .thumbnail(&avatar)
-        .color(Color::DARK_PURPLE)
-        .field("ID", user_id.to_string(), true)
-        .field("Name", get_user_name(&target_user), true)
-        .field("Type", if is_bot { "Bot" } else { "User" }, true)
-        .field(
-            "Created at",
-            format!("<t:{}:F>", created_at.unix_timestamp()),
-            false,
-        )
-        .timestamp(Timestamp::now());
-
     let button = CreateButton::new_link(avatar.clone())
         .label("📥 Download Avatar")
         .style(serenity::all::ButtonStyle::Primary);
 
-    let components = vec![CreateActionRow::Buttons(vec![button])];
+    let embed = EmbedBuilderHelper::new(ctx)
+        .with_title(format!("🪪 About {}", get_user_name(&target_user)))
+        .with_description(format!(
+            "Know more about {} with this summary of their profile information.",
+            get_user_name(&target_user)
+        ))
+        .with_thumbnail(&avatar)
+        .with_color(Color::DARK_PURPLE)
+        .with_field("ID", user_id.to_string(), true)
+        .with_field("Name", get_user_name(&target_user), true)
+        .with_field("Type", if is_bot { "Bot" } else { "User" }, true)
+        .with_field(
+            "Created at",
+            format!("<t:{}:F>", created_at.unix_timestamp()),
+            false,
+        )
+        .with_components(vec![CreateActionRow::Buttons(vec![button])]);
 
-    ctx.send(
-        CreateReply::default()
-            .reply(true)
-            .embed(embed)
-            .components(components),
-    )
-    .await?;
+    ctx.send(embed.into()).await?;
 
     Ok(())
 }

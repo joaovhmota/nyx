@@ -1,10 +1,10 @@
-use crate::types::{Context, Error};
-use poise::{CreateReply, command};
-use rand::RngExt;
-use serenity::{
-    all::{Color, CreateEmbed, Timestamp},
-    builder::{CreateEmbedAuthor, CreateEmbedFooter},
+use crate::{
+    types::{Context, Error},
+    utils::embed_builder_helper::EmbedBuilderHelper,
 };
+use poise::command;
+use rand::RngExt;
+use serenity::all::Color;
 
 /// Roll's a dice, with custom sizes and amounts (optionally with a modifier).
 #[command(slash_command)]
@@ -40,37 +40,29 @@ pub async fn roll_dice(
     let modifier_value = modifier.unwrap_or(0);
     let total = sum + modifier_value;
 
-    let mut embed = CreateEmbed::new()
-        .author(
-            CreateEmbedAuthor::new(ctx.author().display_name().to_string())
-                .icon_url(ctx.author().avatar_url().unwrap()),
-        )
-        .title("🎲 Roll Results")
-        .color(Color::DARK_PURPLE)
-        .field("Sides", sides.to_string(), true)
-        .field("Quantity", count.to_string(), true)
-        .field("Rolls", format!("||{}||", rolls_string), false)
-        .field("Result", format!("||{}||", sum), true)
-        .timestamp(Timestamp::now())
-        .footer(CreateEmbedFooter::new(format!(
-            "Rolled by {}",
-            ctx.author().name
-        )));
+    let mut new_embed = EmbedBuilderHelper::new(ctx)
+        .with_title("🎲 Roll Results")
+        .with_color(Color::DARK_PURPLE)
+        .with_field("Sides", sides.to_string(), true)
+        .with_field("Quantity", count.to_string(), true)
+        .with_field("Rolls", format!("||{}||", rolls_string), false)
+        .with_field("Result", format!("||{}||", sum), true);
 
     if modifier_value != 0 {
-        embed = embed.field("Result with Modifier", format!("||{}||", total), true);
-        embed = embed.field(
-            "Modifier",
-            format!(
-                "{}{}",
-                if modifier_value > 0 { "+" } else { "" },
-                modifier_value
-            ),
-            true,
-        );
+        new_embed = new_embed
+            .with_field("Result with Modifier", format!("||{}||", total), true)
+            .with_field(
+                "Modifier",
+                format!(
+                    "{}{}",
+                    if modifier_value > 0 { "+" } else { "" },
+                    modifier_value
+                ),
+                true,
+            );
     }
 
-    ctx.send(CreateReply::default().embed(embed)).await?;
+    ctx.send(new_embed.into()).await?;
 
     Ok(())
 }

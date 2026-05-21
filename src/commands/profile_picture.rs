@@ -1,12 +1,11 @@
 use crate::{
     types::{Context, Error},
-    utils::user_utils::{get_possession_suffix, get_target_user, get_user_name},
+    utils::{
+        embed_builder_helper::EmbedBuilderHelper,
+        user_utils::{get_possession_suffix, get_target_user, get_user_name},
+    },
 };
-use poise::CreateReply;
-use serenity::{
-    all::{Color, CreateActionRow, CreateButton, CreateEmbed, Timestamp, User},
-    builder::CreateEmbedAuthor,
-};
+use serenity::all::{Color, CreateActionRow, CreateButton, User};
 
 /// Get's someone's (or the author's) profile picture.
 #[poise::command(slash_command)]
@@ -21,36 +20,25 @@ pub async fn profile_picture(
         .unwrap_or_else(|| target_user.default_avatar_url())
         .replace("?size=1024", "?size=4096");
     let suffix = get_possession_suffix(&target_user);
-    let embed = CreateEmbed::new()
-        .author(
-            CreateEmbedAuthor::new(ctx.author().display_name().to_string())
-                .icon_url(ctx.author().avatar_url().unwrap_or_default()),
-        )
-        .title(format!(
+    let button = CreateButton::new_link(avatar.clone())
+        .label("📥 Download Avatar")
+        .style(serenity::all::ButtonStyle::Primary);
+    let embed = EmbedBuilderHelper::new(ctx)
+        .with_title(format!(
             "🖼️ {}{} Avatar",
             get_user_name(&target_user),
             suffix
         ))
-        .description(format!(
+        .with_description(format!(
             "Below is {}{} profile picture, use the button below to download it.",
             get_user_name(&target_user),
             suffix
         ))
-        .image(&avatar)
-        .color(Color::DARK_PURPLE)
-        .timestamp(Timestamp::now());
-    let button = CreateButton::new_link(avatar.clone())
-        .label("📥 Download Avatar")
-        .style(serenity::all::ButtonStyle::Primary);
-    let components = vec![CreateActionRow::Buttons(vec![button])];
+        .with_image(avatar.clone())
+        .with_color(Color::DARK_PURPLE)
+        .with_components(vec![CreateActionRow::Buttons(vec![button])]);
 
-    ctx.send(
-        CreateReply::default()
-            .reply(true)
-            .embed(embed)
-            .components(components),
-    )
-    .await?;
+    ctx.send(embed.into()).await?;
 
     Ok(())
 }
