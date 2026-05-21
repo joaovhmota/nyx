@@ -5,7 +5,7 @@ pub mod types;
 pub mod utils;
 
 use crate::{
-    db::{mongodb::NyxMongo, redis::NyxRedis},
+    db::mongodb::NyxMongo,
     setup::{get_framework_options, get_token},
 };
 use logfy::{critical, debug, information, success};
@@ -30,19 +30,6 @@ async fn main() {
         }
         Err(err) => {
             critical!("Could not connect to MongoDB. Reason: {}", err);
-            exit(1);
-        }
-    }
-
-    information!("Connecting to Redis…");
-    let redis_client = NyxRedis::get_client().await;
-
-    match redis_client {
-        Ok(_) => {
-            success!("Successfully connected to Redis");
-        }
-        Err(err) => {
-            critical!("Could not connect to Redis. Reason: {}", err);
             exit(1);
         }
     }
