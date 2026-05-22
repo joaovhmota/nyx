@@ -12,12 +12,13 @@ pub async fn roll_dice(
     ctx: Context<'_>,
     #[description = "Number of sides each dice will have."] mut sides: u8,
     #[description = "Number of dice to roll."] mut count: u8,
+    #[description = "Hides the final results"] hide_results: Option<bool>,
     #[description = "Optional modifier for the roll."] modifier: Option<i32>,
 ) -> Result<(), Error> {
     sides = u8::max(sides, 2);
     count = u8::max(count, 1);
 
-    let (sum, rolls_string) = {
+    let (raw_sum, sum_string) = {
         let mut rng = rand::rng();
         let mut rolls = Vec::new();
         let mut current_sum: i32 = 0;
@@ -28,36 +29,58 @@ pub async fn roll_dice(
             current_sum += roll;
         }
 
-        let rolls_str = rolls
+        let sum_string = rolls
             .iter()
-            .map(|r: &i32| r.to_string())
-            .collect::<Vec<_>>()
-            .join(", ");
+            .map(|&roll_value| roll_value.to_string())
+            .collect::<Vec<String>>()
+            .join(" + ");
 
-        (current_sum, rolls_str)
+        (current_sum, sum_string)
     };
 
     let modifier_value = modifier.unwrap_or(0);
-    let total = sum + modifier_value;
+    let final_result = raw_sum + modifier_value;
 
     let mut new_embed = EmbedBuilderHelper::new(ctx)
         .with_title("🎲 Roll Results")
         .with_color(Color::DARK_PURPLE)
         .with_field("Sides", sides.to_string(), true)
         .with_field("Quantity", count.to_string(), true)
-        .with_field("Rolls", format!("||{}||", rolls_string), false)
-        .with_field("Result", format!("||{}||", sum), true);
+        .with_field("Rolls", sum_string, false)
+        .with_field(
+            "Total",
+            {
+                if hide_results.unwrap_or(false) {
+                    format!("||{raw_sum}||")
+                } else {
+                    raw_sum.to_string()
+                }
+            },
+            true,
+        );
 
     if modifier_value != 0 {
         new_embed = new_embed
-            .with_field("Result with Modifier", format!("||{}||", total), true)
             .with_field(
                 "Modifier",
                 format!(
                     "{}{}",
-                    if modifier_value > 0 { "+" } else { "" },
+                    if modifier_value > 0 { "+" } else { "-" },
                     modifier_value
                 ),
+                true,
+            )
+            .with_field(
+                "Total + Modifier",
+                {
+                    {
+                        if hide_results.unwrap_or(false) {
+                            format!("||{final_result}||")
+                        } else {
+                            final_result.to_string()
+                        }
+                    }
+                },
                 true,
             );
     }
