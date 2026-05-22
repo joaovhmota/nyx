@@ -2,10 +2,13 @@ use crate::{
     types::{Context, Error},
     utils::{
         embed_builder_helper::EmbedBuilderHelper,
-        user_utils::{get_possession_suffix, get_target_user, get_user_name},
+        user_utils::{get_possession_suffix, get_target_user},
     },
 };
-use serenity::all::{Color, CreateActionRow, CreateButton, User};
+use serenity::{
+    all::{CreateActionRow, CreateButton, User},
+    model::application::ButtonStyle,
+};
 
 /// Gets someone's (or the author's) profile picture.
 #[poise::command(slash_command)]
@@ -15,27 +18,18 @@ pub async fn profile_picture(
     user: Option<User>,
 ) -> Result<(), Error> {
     let target_user = get_target_user(&ctx, &user, true).await?;
-    let avatar = target_user
-        .avatar_url()
-        .unwrap_or_else(|| target_user.default_avatar_url())
-        .replace("?size=1024", "?size=4096");
     let suffix = get_possession_suffix(&target_user);
-    let button = CreateButton::new_link(avatar.clone())
+    let button = CreateButton::new_link(target_user.face().clone())
         .label("📥 Download Avatar")
-        .style(serenity::all::ButtonStyle::Primary);
+        .style(ButtonStyle::Primary);
     let embed = EmbedBuilderHelper::new(ctx)
+        .await?
         .with_title(format!(
-            "🖼️ {}{} Avatar",
-            get_user_name(&target_user),
+            "🖼️ {}{} profile picture",
+            target_user.display_name(),
             suffix
         ))
-        .with_description(format!(
-            "Below is {}{} profile picture, use the button below to download it.",
-            get_user_name(&target_user),
-            suffix
-        ))
-        .with_image(avatar.clone())
-        .with_color(Color::DARK_PURPLE)
+        .with_image(target_user.face().clone())
         .with_components(vec![CreateActionRow::Buttons(vec![button])]);
 
     ctx.send(embed.into()).await?;

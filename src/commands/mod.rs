@@ -12,5 +12,5 @@ pub mod roll_dice;
 pub mod usage;
 
 pub fn avaliable_commands() -> Vec<Command<(), Error>> {
-    vec![profile_picture(), about(), roll_dice(), usage()]
+    vec![about(), profile_picture(), roll_dice(), usage()]
 }

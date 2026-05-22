@@ -4,7 +4,6 @@ use crate::utils::embed_builder_helper::EmbedBuilderHelper;
 use futures::stream::StreamExt;
 use mongodb::bson::{Document, doc};
 use poise::command;
-use poise::serenity_prelude::Color;
 use std::cmp::Reverse;
 
 /// Shows a summary of Nyx's usage, showing the top 25 users
@@ -39,8 +38,8 @@ pub async fn usage(ctx: Context<'_>) -> Result<(), Error> {
     let context_cache = ctx.cache();
 
     let mut embed = EmbedBuilderHelper::new(ctx)
-        .with_title("📊 Nyx's Usage")
-        .with_color(Color::DARK_PURPLE);
+        .await?
+        .with_title("📊 Nyx's Usage");
 
     if let Some(url) = context_cache.current_user().avatar_url() {
         embed = embed.with_thumbnail(url)

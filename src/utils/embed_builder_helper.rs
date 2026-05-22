@@ -4,7 +4,10 @@ use serenity::{
     model::{Color, Timestamp},
 };
 
-use crate::{types::Context, utils::user_utils::get_possession_suffix};
+use crate::{
+    types::{Context, Error},
+    utils::user_utils::{get_possession_suffix, get_target_user},
+};
 
 pub struct EmbedBuilderHelper {
     internal_embed: CreateEmbed,
@@ -26,37 +29,31 @@ impl From<EmbedBuilderHelper> for CreateReply {
 }
 
 impl EmbedBuilderHelper {
-    pub fn new(ctx: Context<'_>) -> EmbedBuilderHelper {
-        let command_author = ctx.author();
+    pub async fn new(ctx: Context<'_>) -> Result<EmbedBuilderHelper, Error> {
+        let command_author = get_target_user(&ctx, &None, false).await?;
         let cache = ctx.cache();
         let current_user = cache.current_user();
 
         let default_embed = CreateEmbed::default()
             .author(
-                CreateEmbedAuthor::new(command_author.display_name()).icon_url(
-                    command_author
-                        .avatar_url()
-                        .unwrap_or(command_author.default_avatar_url()),
-                ),
+                CreateEmbedAuthor::new(command_author.display_name())
+                    .icon_url(command_author.face()),
             )
+            .color(command_author.accent_colour.unwrap_or(Color::BLURPLE))
             .footer(
                 CreateEmbedFooter::new(format!(
                     "Dont forget to check out {}{} other commands!",
                     current_user.display_name(),
                     get_possession_suffix(&current_user)
                 ))
-                .icon_url(
-                    current_user
-                        .avatar_url()
-                        .unwrap_or(current_user.default_avatar_url()),
-                ),
+                .icon_url(current_user.face()),
             )
             .timestamp(Timestamp::now());
 
-        Self {
+        Ok(Self {
             internal_embed: default_embed,
             components: None,
-        }
+        })
     }
 
     pub fn with_title<T: Into<String>>(mut self, title: T) -> Self {
@@ -66,11 +63,6 @@ impl EmbedBuilderHelper {
 
     pub fn with_description<T: Into<String>>(mut self, description: T) -> Self {
         self.internal_embed = self.internal_embed.description(description);
-        self
-    }
-
-    pub fn with_color(mut self, color: Color) -> Self {
-        self.internal_embed = self.internal_embed.color(color);
         self
     }
 

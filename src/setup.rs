@@ -2,7 +2,6 @@ use crate::{
     commands::avaliable_commands,
     db::mongodb::NyxMongo,
     types::{Context, Error},
-    utils::user_utils::get_user_name,
 };
 use bson::Document;
 use dotenv::dotenv;
@@ -49,7 +48,7 @@ pub async fn get_owner(token: &str) -> HashSet<UserId> {
     if let Ok(app_info) = http.get_current_application_info().await
         && let Some(owner) = app_info.owner
     {
-        information!("Application Owner is '{}'", get_user_name(&owner));
+        information!("Application Owner is '{}'", owner.display_name());
         owners.insert(owner.id);
     }
 
@@ -62,7 +61,7 @@ pub async fn on_pre_command(ctx: &Context<'_>) {
 
     information!(
         "User '{}' ({}) requested the execution of the command '{}'",
-        get_user_name(user),
+        user.display_name(),
         user.id,
         command.name
     );
@@ -107,7 +106,6 @@ pub async fn on_error(error: FrameworkError<'_, (), Error>) {
                     )
                     .title("🚫 Unauthorized")
                     .description("You're not allowed to use this command.")
-                    .color(Color::ORANGE)
                     .timestamp(Timestamp::now()),
             );
 

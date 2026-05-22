@@ -4,7 +4,6 @@ use crate::{
 };
 use poise::command;
 use rand::RngExt;
-use serenity::all::Color;
 
 /// Roll's a dice, with custom sizes and amounts (optionally with a modifier).
 #[command(slash_command)]
@@ -42,8 +41,8 @@ pub async fn roll_dice(
     let final_result = raw_sum + modifier_value;
 
     let mut new_embed = EmbedBuilderHelper::new(ctx)
+        .await?
         .with_title("🎲 Roll Results")
-        .with_color(Color::DARK_PURPLE)
         .with_field("Sides", sides.to_string(), true)
         .with_field("Quantity", count.to_string(), true)
         .with_field("Rolls", sum_string, false)
