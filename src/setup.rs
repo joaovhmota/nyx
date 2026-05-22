@@ -66,29 +66,31 @@ pub async fn on_pre_command(ctx: &Context<'_>) {
         command.name
     );
 
-    match NyxMongo::get_db().await {
-        Ok(db) => {
-            let collection = db.collection::<Document>("users");
+    if !command.name.eq_ignore_ascii_case("usage") {
+        match NyxMongo::get_db().await {
+            Ok(db) => {
+                let collection = db.collection::<Document>("users");
 
-            let filter = doc! { "_id": user.id.to_string() };
-            let update = doc! { "$inc": { "commands_executed": 1 } };
-            let options = mongodb::options::UpdateOptions::builder()
-                .upsert(true)
-                .build();
+                let filter = doc! { "_id": user.id.to_string() };
+                let update = doc! { "$inc": { "commands_executed": 1 } };
+                let options = mongodb::options::UpdateOptions::builder()
+                    .upsert(true)
+                    .build();
 
-            if let Err(err) = collection
-                .update_one(filter, update)
-                .with_options(options)
-                .await
-            {
-                error!(
-                    "Failed to update command execution count in MongoDB: {}",
-                    err
-                );
+                if let Err(err) = collection
+                    .update_one(filter, update)
+                    .with_options(options)
+                    .await
+                {
+                    error!(
+                        "Failed to update command execution count in MongoDB: {}",
+                        err
+                    );
+                }
             }
-        }
-        Err(err) => {
-            critical!("Failed to connect to MongoDB: {}", err);
+            Err(err) => {
+                critical!("Failed to connect to MongoDB: {}", err);
+            }
         }
     }
 }
