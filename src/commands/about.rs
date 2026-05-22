@@ -8,7 +8,7 @@ use crate::{
 use poise::command;
 use serenity::all::{Color, CreateActionRow, CreateButton, User};
 
-/// Get's someone's (or the author's) profile information.
+/// Gets someone's (or the author's) profile information.
 #[command(slash_command)]
 pub async fn about(
     ctx: Context<'_>,

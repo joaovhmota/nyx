@@ -7,7 +7,7 @@ use crate::{
 };
 use serenity::all::{Color, CreateActionRow, CreateButton, User};
 
-/// Get's someone's (or the author's) profile picture.
+/// Gets someone's (or the author's) profile picture.
 #[poise::command(slash_command)]
 pub async fn profile_picture(
     ctx: Context<'_>,
