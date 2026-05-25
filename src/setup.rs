@@ -1,5 +1,5 @@
 use crate::{
-    commands::avaliable_commands,
+    commands::{avaliable_commands, does_command_ignore_metrics},
     db::mongodb::NyxMongo,
     types::{Context, Error},
 };
@@ -66,7 +66,7 @@ pub async fn on_pre_command(ctx: &Context<'_>) {
         command.name
     );
 
-    if !command.name.eq_ignore_ascii_case("usage") {
+    if !does_command_ignore_metrics(&command.name) {
         match NyxMongo::get_db().await {
             Ok(db) => {
                 let collection = db.collection::<Document>("users");
