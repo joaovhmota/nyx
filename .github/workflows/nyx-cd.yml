@@ -1,0 +1,28 @@
+name: nyx-cd
+run-name: "🚀 CD №${{ github.run_number }}.${{ github.run_attempt }}, ${{ github.event_name }} by ${{ github.actor }}."
+
+on:
+    workflow_dispatch:
+
+concurrency:
+    group: cd-nyx
+    cancel-in-progress: true
+
+env:
+    TRANSCRIPTION_PATH: C:\github\nyx\logs
+
+jobs:
+    deploy:
+        name: 🐳 Docker Compose
+        runs-on: self-hosted
+        continue-on-error: false
+
+        steps:
+            - name: 🐳 Restart Docker Compose
+              shell: powershell
+              run: |
+                  Start-Transcript -Path "$($env:TRANSCRIPTION_PATH)\$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').log"
+                  Set-Location -Path "C:\Users\jvhm2\Desktop\projects\nyx\"
+
+                  docker compose restart
+                  Stop-Transcript
