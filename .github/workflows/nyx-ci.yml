@@ -13,6 +13,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: src
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,8 +24,9 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: src/go.mod
           cache: true
+          cache-dependency-path: src/go.sum
 
       - name: Download dependencies
         run: go mod download
