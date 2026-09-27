@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+
+# Build stage
+FROM golang:1.27-bookworm AS builder
+
+WORKDIR /src
+
+# go.mod/go.sum change far less often than the code, so they are copied first
+# to keep the module download layer warm across ordinary edits. The cache mount
+# lets the module cache survive between builds without landing in a layer.
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
+
+COPY . .
+
+# CGO is disabled so the binary is fully static and runs on a base with no
+# libc. -trimpath keeps build paths out of stack traces, -s -w drop the
+# symbol table and DWARF data to keep the binary small.
+ENV CGO_ENABLED=0
+RUN go build -trimpath -ldflags="-s -w" -o /out/nyx .
+
+# Run stage: distroless supplies the CA bundle needed to reach Discord over
+# TLS, with no shell and no package manager present. The :nonroot tag already
+# runs as uid 65532, and the app writes nothing, so the image can stay
+# read-only at runtime.
+FROM gcr.io/distroless/static-debian12:nonroot
+
+COPY --from=builder /out/nyx /nyx
+
+ENTRYPOINT ["/nyx"]

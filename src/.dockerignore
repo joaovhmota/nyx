@@ -1,0 +1,14 @@
+# The build context is ./src (see compose.yml), so Docker only reads this file
+# here — the repository-root .dockerignore is ignored.
+.env
+.env.*
+!.env.example
+
+*.exe
+*.test
+*.out
+coverage.*
+
+Dockerfile
+dockerfile
+compose*.yml

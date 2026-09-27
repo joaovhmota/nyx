@@ -2,90 +2,36 @@ name: nyx-ci
 run-name: "🛠️ CI №${{ github.run_number }}.${{ github.run_attempt }}, ${{ github.event_name }} by ${{ github.actor }}."
 
 on:
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - "src/**"
-  #     - ".github/**"
-  #     - "Cargo.toml"
-  #     - "Cargo.lock"
-  # pull_request:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - "src/**"
-  #     - ".github/**"
-  #     - "Cargo.toml"
-  #     - "Cargo.lock"
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
   workflow_dispatch:
-    
+
 jobs:
-  build:
-    name: 🛠️ Toolchain Version — ${{ matrix.toolchain }}
+  test:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        toolchain:
-          - stable
-          - beta
-          - nightly
-    continue-on-error: ${{ matrix.toolchain == 'nightly' }}
-    steps:
-      - name: 📥 Checkout
-        uses: actions/checkout@v4
-      - name: 🦀 Setup
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ matrix.toolchain }}
-          components: rustfmt, clippy
-      - name: ⚡ Cache
-        uses: Swatinem/rust-cache@v2
-      - name: 🎨 Formatting
-        run: cargo fmt --check
-      - name: 📋 Check
-        if: matrix.toolchain != 'stable'
-        run: cargo check --all-targets --all-features --locked
-      - name: 🔍 Clippy
-        if: matrix.toolchain == 'stable'
-        run: cargo clippy --all-targets --all-features --locked -- -D warnings
-      - name: 🏗️ Build
-        if: matrix.toolchain == 'stable'
-        run: cargo build --release --locked
 
-  publish:
-    name: 🐳 Publish Docker Image
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    permissions:
-      contents: read
-      packages: write
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🔑 Login to GHCR
-        uses: docker/login-action@v3
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          go-version-file: go.mod
+          cache: true
 
-      - name: 🏷️ Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=sha,prefix=sha-
-            type=raw,value=latest
+      - name: Download dependencies
+        run: go mod download
 
-      - name: 🐳 Build and Push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      - name: Check formatting
+        run: |
+          test -z "$(gofmt -l .)"
+
+      - name: Run tests
+        run: go test ./...
+
+      - name: Build
+        run: go build ./...

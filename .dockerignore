@@ -1,0 +1,33 @@
+# Keep the build context small and prevent host artefacts from leaking into the
+# image, which would otherwise bust the layer cache on every build.
+.git
+.gitignore
+.github
+
+# Local secrets and overrides. .env is loaded by compose, never baked in.
+.env
+.env.*
+!.env.example
+
+# Local compose variants and their volumes.
+compose.yml
+compose.*.yml
+docker-compose*.yml
+
+# Build output and coverage reports.
+bin/
+dist/
+*.exe
+*.test
+*.out
+coverage.*
+
+# Editor and OS noise.
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Documentation is not needed to build the binary.
+readme.md
+docs/

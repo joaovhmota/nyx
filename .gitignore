@@ -1,7 +1,29 @@
-/target
+# Binaries
+/nyx
+/nyx.exe
+/bin/
+/dist/
 
-# Environment File
+# Test and coverage artifacts
+*.out
+*.test
+coverage.html
+
+# Environment files
 .env
+.env.*
+!.env.example
 
-# Docker
-*compose.yml
+# Local compose files (machine-specific; see compose.example.yml)
+/compose.yml
+/compose.*.yml
+/*compose.yml
+
+# IDE
+/.idea/
+/.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
