@@ -13,24 +13,28 @@ import (
 )
 
 func init() {
-	_ = godotenv.Load()
+	err := godotenv.Load()
+
+	if err != nil {
+		log.Println("Could not load .env file; probably in a docker container")
+	}
 }
 
 func main() {
-	var discordToken = os.Getenv("DISCORD_BOT_TOKEN")
+	discordToken := os.Getenv("DISCORD_BOT_TOKEN")
 
 	if strings.TrimSpace(discordToken) == "" {
-		log.Fatalln("Variable 'DISCORD_BOT_TOKEN' can't be empty, please provide one.")
+		log.Fatalln("Variable 'DISCORD_BOT_TOKEN' can't be empty, please provide one")
 	}
 
-	var authenticationHeader = fmt.Sprintf("Bot %s", discordToken)
-	var discordClient, clientError = discordgo.New(authenticationHeader)
+	authenticationHeader := fmt.Sprintf("Bot %s", discordToken)
+	discordClient, clientError := discordgo.New(authenticationHeader)
 
 	if clientError != nil {
 		log.Fatal(clientError)
 	}
 
-	var connectionError = discordClient.Open()
+	connectionError := discordClient.Open()
 
 	if connectionError != nil {
 		log.Fatal(connectionError)
@@ -41,7 +45,7 @@ func main() {
 
 	log.Println("Discord's client successfully connected")
 
-	var stop = make(chan os.Signal, 1)
+	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 
 	log.Println("Press CTRL+C to shutdown")
