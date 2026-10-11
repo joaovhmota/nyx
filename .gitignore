@@ -14,11 +14,6 @@ coverage.html
 .env.*
 !.env.example
 
-# Local compose files (machine-specific; see compose.example.yml)
-/compose.yml
-/compose.*.yml
-/*compose.yml
-
 # IDE
 /.idea/
 /.vscode/

@@ -1,0 +1,34 @@
+name: nyx
+
+services:
+  nyx:
+    build:
+      context: src
+      dockerfile: dockerfile
+    container_name: nyx-bot
+    env_file:
+      - ./src/.env
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: nyx-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+volumes:
+  ollama_data:
